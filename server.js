@@ -8,7 +8,7 @@ import isImage from 'is-image';
   const app = express();
 
   // Set the network port
-  const port = process.env.PORT || 8080;
+  const port = process.env.PORT || 8082;
   
   // Use the body parser middleware for post requests
   app.use(bodyParser.json());
@@ -31,18 +31,23 @@ import isImage from 'is-image';
     app.get( "/filteredimage", async (req, res) => {
       //    1. validate the image_url query
       let resUrl = req.query.image_url;
-      if (!isImage(resUrl)) {
-        res.send("This file is not image !!! ");
+      if (resUrl === null || resUrl === "") {
+        return res.send("Please input image_url !!! ");
       }
 
-      //    2. call filterImageFromURL(image_url) to filter the image
-      const savedPath = await filterImageFromURL(resUrl);
+      try {
+        //    2. call filterImageFromURL(image_url) to filter the image
+        const savedPath = await filterImageFromURL(resUrl);
 
-      //    3. send the resulting file in the response
-      res.sendFile(savedPath);
+        //    3. send the resulting file in the response
+        res.status(200).sendFile(savedPath);
 
-      //    4. deletes any files on the server on finish of the response
-      res.on('finish', () => deleteLocalFiles([savedPath]));
+        //    4. deletes any files on the server on finish of the response
+        res.on('finish', () => deleteLocalFiles([savedPath]));
+      } catch(error) {
+        res.status(442).send({ message: 'This file is not image !!! ' });
+      }
+
     } );
   //! END @TODO1
   
